@@ -12,7 +12,8 @@ module PublicActivity
       k.unshift('activity') if k.first != 'activity'
       k = k.join('.')
 
-      I18n.t(k, parameters.merge(params) || {})
+      translate_params = parameters.merge(params) || {}
+      I18n.t(k, **translate_params)
     end
 
     # Renders activity from views.
@@ -142,7 +143,7 @@ module PublicActivity
     def prepare_layout(root, layout)
       if layout
         path = layout.to_s
-        unless path.starts_with?(root) || path.starts_with?("/")
+        unless path.start_with?(root) || path.start_with?("/")
           return File.join(root, path)
         end
       end
@@ -150,7 +151,11 @@ module PublicActivity
     end
 
     def prepare_parameters(params)
-      @prepared_params ||= self.parameters.with_indifferent_access.merge(params)
+      if self.parameters
+        @prepared_params ||= self.parameters.with_indifferent_access.merge(params)
+      else
+        @prepared_params ||= params
+      end
     end
 
     protected

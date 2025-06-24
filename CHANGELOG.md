@@ -1,5 +1,33 @@
 # Changelog
 
+## 3.0.1
+
+- **Fixed** Rails 6.1/7.0 regression in serialization of `nil`/`NULL` values
+- **Fixed** Docs for `ORM::ActiveRecord::Activist`
+
+## 3.0.0
+
+- **Added** Rails 7.1 support (s. #384, thanks [max.jos](https://github.com/yhru))
+- **Removed** Ruby <= 2.7 support
+- **Removed** Rails <= 6.0 support
+
+## 2.0.2
+
+- **Fixed** Rescue from `ActiveRecord::ConnectionNotEstablished` (s. #372, thanks [Gabe Blair](https://github.com/gblair) & [Vitalie Lazu](https://github.com/vitaliel))
+
+## 2.0.1
+
+- **Fixed** Fix regression in generated migration (s. #368, thanks [Colin Bonner](https://github.com/cfbonner))
+
+## 2.0.0
+
+- **Fixed** Deprecation warnings in Ruby 2.7/3.0 due to double splat operator
+- **Fixed** Ruby warnings due to unused variables `e` in exception handling
+- **Added** Ruby 3.1 support
+- **Added** Rails 7.0 support
+- **Removed** Ruby <= 2.4 support
+- **Removed** Rails <= 4.2 support
+
 ## 1.6.4
 
 - **Fixed** exception when not using MySQL or Postgres (see #335, thanks to [Roland Netzsch](https://github.com/stuxcrystal))

@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "rubygems"
-require "bundler"
+require 'rubygems'
+require 'bundler'
 Bundler.setup(:default, :test)
 
 if ENV['COV']
   require 'simplecov'
   SimpleCov.start do
-    add_filter "/test/"
+    add_filter '/test/'
   end
 end
-$:.unshift File.expand_path('../../lib/', __FILE__)
+$:.unshift File.expand_path('../lib', __dir__)
 require 'active_support/testing/setup_and_teardown'
 require 'public_activity'
 require 'public_activity/testing'
@@ -26,46 +26,39 @@ when :active_record
   require 'active_record/connection_adapters/sqlite3_adapter'
   require 'stringio'        # silence the output
   $stdout = StringIO.new    # from migrator
-  ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
+  ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 
-  migrations_path = File.expand_path('../migrations', __FILE__)
+  migrations_path = File.expand_path('migrations', __dir__)
+  active_record_version = ActiveRecord.version.release
 
-  if ActiveRecord.version.release() < Gem::Version.new('5.2.0')
-    ActiveRecord::Migrator.migrate(migrations_path)
-  else
+  if active_record_version >= Gem::Version.new('6.0.0')
+    ActiveRecord::MigrationContext.new(migrations_path, ActiveRecord::SchemaMigration).migrate
+  elsif active_record_version >= Gem::Version.new('5.2.0')
     ActiveRecord::MigrationContext.new(migrations_path).migrate
+  else # active_record_version < Gem::Version.new('5.2.0')
+    ActiveRecord::Migrator.migrate(migrations_path)
   end
 
   $stdout = STDOUT
 
   def article(options = {})
-    klass = Class.new(ActiveRecord::Base) do
+    Class.new(ActiveRecord::Base) do
       self.table_name = 'articles'
       include PublicActivity::Model
       tracked options
       belongs_to :user
 
       def self.name
-        "Article"
-      end
-
-      if ::ActiveRecord::VERSION::MAJOR < 4
-        attr_accessible :name, :published, :user
+        'Article'
       end
     end
-    klass
   end
+
   class User < ActiveRecord::Base; end
-
-  if ::ActiveRecord::VERSION::MAJOR < 4
-    PublicActivity::Activity.class_eval do
-      attr_accessible :nonstandard
-    end
-  end
 when :mongoid
   require 'mongoid'
 
-  Mongoid.load!(File.expand_path("test/mongoid.yml"), :test)
+  Mongoid.load!(File.expand_path('test/mongoid.yml'), :test)
 
   class User
     include Mongoid::Document
@@ -102,7 +95,13 @@ when :mongoid
 when :mongo_mapper
   require 'mongo_mapper'
 
-  config = YAML.load(File.read("test/mongo_mapper.yml"))
+  # TODO: remove when no longer support 2.5.8
+  config =
+    if RUBY_VERSION >= '2.6.0'
+      YAML.safe_load(File.read('test/mongo_mapper.yml'), aliases: true)
+    else
+      YAML.safe_load(File.read('test/mongo_mapper.yml'), [], [], true)
+    end
   MongoMapper.setup(config, :test)
 
   class User
@@ -133,12 +132,8 @@ when :mongo_mapper
   end
 end
 
-class ViewSpec < MiniTest::Spec
-  if ActiveSupport.version >= Gem::Version.new('5.2.0')
-    prepend ActiveSupport::Testing::SetupAndTeardown
-  else
-    include ActiveSupport::Testing::SetupAndTeardown
-  end
+class ViewSpec < Minitest::Spec
+  prepend ActiveSupport::Testing::SetupAndTeardown
   include ActionView::TestCase::Behavior
 end
-MiniTest::Spec.register_spec_type(/Rendering$/, ViewSpec)
+Minitest::Spec.register_spec_type(/Rendering$/, ViewSpec)

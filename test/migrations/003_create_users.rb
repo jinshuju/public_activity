@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'migrations_base.rb'
-
-class CreateUsers < MigrationsBase
+class CreateUsers < ActiveRecord::Migration[6.1]
   def self.up
     create_table :users do |t|
       t.string :name
