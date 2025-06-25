@@ -14,7 +14,7 @@ module PublicActivity
     # Creates activity upon modification of the tracked model
     def activity_on_update
       # Either use #changed? method for Rails < 5.1 or #saved_changes? for recent versions
-      create_activity(:update) if respond_to?(:saved_changes?) ? saved_changes? : changed?
+      create_activity(:update) if respond_to?(:saved_changes?) ? saved_changes? : previous_changes.present?
     end
   end
 end
